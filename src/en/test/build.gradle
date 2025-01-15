@@ -1,0 +1,7 @@
+ext {
+    extName = 'New Api Test'
+    extClass = '.Test'
+    extVersionCode = 1
+}
+
+apply from: "$rootDir/common.gradle"

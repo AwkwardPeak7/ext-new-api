@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+      - '!**.md'
+      - '!.github/**'
+      - '.github/scripts/**'
+      - '.github/workflows/build_push.yml'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build repo
+    runs-on: ubuntu-latest
+  steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v4.2.2
+      with:
+        ref: main
+        path: main
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4.6.0
+      with:
+        java-version: 17
+        distribution: temurin
+
+    - name: Prepare signing key
+      run: |
+        echo ${{ secrets.KEYSTORE }} | base64 -d > main/signingkey.jks
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v4.2.2
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x main/gradlew
+
+    - name: Build extensions (chunk ${{ matrix.chunk }})
+      env:
+        ALIAS: ${{ secrets.ALIAS }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        cd main
+       ./gradlew -p src assembleRelease
+
+    - name: Clean up CI files
+      run: rm main/signingkey.jks
+
+    - name: Checkout repo branch
+      uses: actions/checkout@v4.2.2
+      with:
+        ref: repo
+        path: repo
+
+    - name: Create repo artifacts
+      run: |
+        cd main
+        mkdir -p repo/apk
+        mv **/*.apk repo/apk/
+        INSPECTOR_LINK="$(curl -s "https://api.github.com/repos/keiyoushi/extensions-inspector/releases/latest" | jq -r '.assets[0].browser_download_url')"
+        curl -L "$INSPECTOR_LINK" -o ./Inspector.jar
+        java -jar ./Inspector.jar "repo/apk" "output.json" "tmp"
+        python ./.github/scripts/create-repo.py
+
+    - name: Commit repo
+      run: |
+        cd repo
+        rsync -a --delete --exclude .git --exclude .gitignore --exclude repo.json ../main/repo/ .
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        git status
+        if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Update extensions repo"
+            git push
+        else
+            echo "No changes to commit"
+        fi

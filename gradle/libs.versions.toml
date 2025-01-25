@@ -1,15 +1,14 @@
 [versions]
-kotlin_version = "2.0.0"
+kotlin_version = "2.1.0"
 coroutines_version = "1.10.1"
 serialization_version = "1.8.0"
 
 [libraries]
-gradle-agp = { module = "com.android.tools.build:gradle", version = "8.7.3" }
+gradle-agp = { module = "com.android.tools.build:gradle", version = "8.8.0" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin_version" }
 gradle-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin_version" }
-gradle-kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version = "3.13.0" }
 
-tachiyomi-lib = { module = "com.github.AwkwardPeak7:extensions-lib", version = "patch-1-SNAPSHOT" }
+tachiyomi-lib = { module = "com.github.mihonapp:extensions-lib", version = "21f081ea51" }
 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin_version" }
 kotlin-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization_version" }

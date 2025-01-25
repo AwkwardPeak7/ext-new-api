@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.extension.en.test
 
+import android.util.Log
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
@@ -8,7 +9,7 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.delay
-import mihon.source.model.UserAgentType
+import mihonx.source.model.UserAgentType
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.Response
@@ -17,14 +18,17 @@ class Test : HttpSource() {
     override val name = "New Api Test"
     override val language = "en"
     override val baseUrl = "http://127.0.0.1"
-    override val supportsLatest = true
 
-    // TODO: remove need for override
-    @Deprecated("Use language instead", ReplaceWith("language"))
-    override val lang = language
-
+    override val hasLatestListing = true
     override val hasSearchFilters = true
     override val supportedUserAgentType = UserAgentType.Mobile
+
+    init {
+        headers["User-Agent"]?.also {
+            Log.i(name, "Useragent in headers: $it")
+            Log.i(name, "Useragent from fun: ${getUserAgent()}")
+        }
+    }
 
     override suspend fun getSearchFilters(): FilterList {
         delay(500) // simulate network call

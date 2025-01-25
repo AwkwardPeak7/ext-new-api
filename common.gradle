@@ -17,6 +17,9 @@ android {
     sourceSets {
         main {
             manifest.srcFile "AndroidManifest.xml"
+            if (!manifest.srcFile.exists()) {
+                manifest.srcFile(layout.buildDirectory.get().file("tempAndroidManifest.xml").getAsFile().path)
+            }
             java.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
@@ -28,7 +31,7 @@ android {
         targetSdk AndroidConfig.targetSdk
         applicationIdSuffix project.parent.name + "." + project.name
         versionCode theme == null ? extVersionCode : theme.baseVersionCode + overrideVersionCode
-        versionName "1.4.$versionCode"
+        versionName "1.6.$versionCode"
         base {
             archivesName = "tachiyomi-$applicationIdSuffix-v$versionName"
         }
@@ -100,13 +103,10 @@ tasks.register("writeManifestFile") {
     doLast {
         def manifest = android.sourceSets.getByName("main").manifest
         if (!manifest.srcFile.exists()) {
-            File tempFile = layout.buildDirectory.get().file("tempAndroidManifest.xml").getAsFile()
-            if (!tempFile.exists()) {
-                tempFile.withWriter {
-                    it.write('<?xml version="1.0" encoding="utf-8"?>\n<manifest />\n')
-                }
+            layout.buildDirectory.get().asFile.mkdir()
+            manifest.srcFile.withWriter {
+                it.write('<?xml version="1.0" encoding="utf-8"?>\n<manifest />\n')
             }
-            manifest.srcFile(tempFile.path)
         }
     }
 }

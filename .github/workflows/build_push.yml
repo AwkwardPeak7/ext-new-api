@@ -59,7 +59,7 @@ jobs:
         run: |
           cd main
           mkdir -p repo/apk
-          mv **/*.apk repo/apk/
+          find . -name "*.apk" -exec mv {} repo/apk/ \;
           INSPECTOR_LINK="$(curl -s "https://api.github.com/repos/keiyoushi/extensions-inspector/releases/latest" | jq -r '.assets[0].browser_download_url')"
           curl -L "$INSPECTOR_LINK" -o ./Inspector.jar
           java -jar ./Inspector.jar "repo/apk" "output.json" "tmp"

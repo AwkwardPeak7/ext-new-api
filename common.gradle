@@ -11,12 +11,12 @@ Project theme = ext.has("themePkg") ? project(":lib-multisrc:$themePkg") : null
 if (theme != null) evaluationDependsOn(theme.path)
 
 android {
-    compileSdk AndroidConfig.compileSdk
+    compileSdk = AndroidConfig.compileSdk
 
-    namespace "eu.kanade.tachiyomi.extension"
+    namespace = "eu.kanade.tachiyomi.extension"
     sourceSets {
         main {
-            manifest.srcFile "AndroidManifest.xml"
+            manifest.srcFile("AndroidManifest.xml")
             if (!manifest.srcFile.exists()) {
                 manifest.srcFile(layout.buildDirectory.get().file("tempAndroidManifest.xml").getAsFile().path)
             }
@@ -27,11 +27,11 @@ android {
     }
 
     defaultConfig {
-        minSdk AndroidConfig.minSdk
-        targetSdk AndroidConfig.targetSdk
-        applicationIdSuffix project.parent.name + "." + project.name
-        versionCode theme == null ? extVersionCode : theme.baseVersionCode + overrideVersionCode
-        versionName "1.6.$versionCode"
+        minSdk = AndroidConfig.minSdk
+        targetSdk = AndroidConfig.targetSdk
+        applicationIdSuffix = project.parent.name + "." + project.name
+        versionCode = theme == null ? extVersionCode : theme.baseVersionCode + overrideVersionCode
+        versionName = "1.6.$versionCode"
         base {
             archivesName = "tachiyomi-$applicationIdSuffix-v$versionName"
         }
@@ -55,18 +55,18 @@ android {
 
     signingConfigs {
         release {
-            storeFile rootProject.file("signingkey.jks")
-            storePassword System.getenv("KEY_STORE_PASSWORD")
-            keyAlias System.getenv("ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            storeFile = rootProject.file("signingkey.jks")
+            storePassword = System.getenv("KEY_STORE_PASSWORD")
+            keyAlias = System.getenv("ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            vcsInfo.include false
+            signingConfig = signingConfigs.release
+            minifyEnabled = false
+            vcsInfo.include = false
         }
     }
 
@@ -75,7 +75,7 @@ android {
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 
     packaging {

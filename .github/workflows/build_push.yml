@@ -40,7 +40,9 @@ jobs:
       uses: gradle/actions/setup-gradle@v4.2.2
 
     - name: Grant execute permission for gradlew
-      run: chmod +x main/gradlew
+      run: |
+        cd main
+        chmod +x gradlew
 
     - name: Build extensions (chunk ${{ matrix.chunk }})
       env:
@@ -54,12 +56,6 @@ jobs:
     - name: Clean up CI files
       run: rm main/signingkey.jks
 
-    - name: Checkout repo branch
-      uses: actions/checkout@v4.2.2
-      with:
-        ref: repo
-        path: repo
-
     - name: Create repo artifacts
       run: |
         cd main
@@ -69,6 +65,12 @@ jobs:
         curl -L "$INSPECTOR_LINK" -o ./Inspector.jar
         java -jar ./Inspector.jar "repo/apk" "output.json" "tmp"
         python ./.github/scripts/create-repo.py
+
+    - name: Checkout repo branch
+      uses: actions/checkout@v4.2.2
+      with:
+        ref: repo
+        path: repo
 
     - name: Commit repo
       run: |

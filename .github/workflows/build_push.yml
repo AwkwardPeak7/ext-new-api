@@ -46,7 +46,7 @@ jobs:
       - name: Build extensions
         env:
           ALIAS: ${{ secrets.ALIAS }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd main

@@ -15,8 +15,6 @@ import kotlinx.coroutines.delay
 import mihonx.source.model.UserAgentType
 import mihonx.source.utils.sourcePreferences
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Request
-import okhttp3.Response
 
 class Test : HttpSource(), ConfigurableSource {
     override val name = "New Api Test"
@@ -88,19 +86,33 @@ class Test : HttpSource(), ConfigurableSource {
         )
     }
 
-    override suspend fun getMangaDetailsAndChapters(manga: SManga): Pair<SManga, List<SChapter>> {
-        val newManga = SManga.create().apply {
-            description = buildString {
-                append("title: ", manga.title, "\n")
-                append("pref val: ", preferences.getString("key", "empty"))
+    override suspend fun getMangaDetails(
+        manga: SManga,
+        updateManga: Boolean,
+        fetchChapters: Boolean
+    ): Pair<SManga, List<SChapter>> {
+        val newManga = if (updateManga) {
+            SManga.create().apply {
+                description = buildString {
+                    append("title: ", manga.title, "\n")
+                    append("pref val: ", preferences.getString("key", "empty"))
+                }
             }
-        }
-        val chapter = SChapter.create().apply {
-            url = manga.url
-            name = "Chapter " + manga.title
+        } else {
+            manga
         }
 
-        return newManga to listOf(chapter)
+        val chapter = if (fetchChapters) {
+            listOf(SChapter.create().apply {
+                url = manga.url
+                name = "Chapter " + manga.title
+                date_upload = System.currentTimeMillis()
+            })
+        } else {
+            emptyList()
+        }
+
+        return newManga to chapter
     }
 
     override suspend fun getPageList(chapter: SChapter): List<Page> {
@@ -120,45 +132,5 @@ class Test : HttpSource(), ConfigurableSource {
             title = "Test Preference"
             summary = "%s"
         }
-    }
-
-    override fun popularMangaRequest(page: Int): Request {
-        throw UnsupportedOperationException()
-    }
-
-    override fun popularMangaParse(response: Response): MangasPage {
-        throw UnsupportedOperationException()
-    }
-
-    override fun latestUpdatesRequest(page: Int): Request {
-        throw UnsupportedOperationException()
-    }
-
-    override fun latestUpdatesParse(response: Response): MangasPage {
-        throw UnsupportedOperationException()
-    }
-
-    override fun searchMangaRequest(page: Int, query: String, filters: FilterList): Request {
-        throw UnsupportedOperationException()
-    }
-
-    override fun searchMangaParse(response: Response): MangasPage {
-        throw UnsupportedOperationException()
-    }
-
-    override fun mangaDetailsParse(response: Response): SManga {
-        throw UnsupportedOperationException()
-    }
-
-    override fun chapterListParse(response: Response): List<SChapter> {
-        throw UnsupportedOperationException()
-    }
-
-    override fun pageListParse(response: Response): List<Page> {
-        throw UnsupportedOperationException()
-    }
-
-    override fun imageUrlParse(response: Response): String {
-        throw UnsupportedOperationException()
     }
 }

@@ -12,8 +12,13 @@ import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.delay
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import mihonx.source.model.UserAgentType
 import mihonx.source.utils.sourcePreferences
+import mihonx.utils.parseAs
+import mihonx.utils.parseAsDocument
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class Test : HttpSource(), ConfigurableSource {
@@ -42,39 +47,25 @@ class Test : HttpSource(), ConfigurableSource {
     }
 
     override suspend fun getDefaultMangaList(page: Int): MangasPage {
-        return MangasPage(
-            mangas = listOf(
+        val jo = MANGA_LIST.parseAs<JsonArray>()
+        val manga = jo.map {
+            with(it.jsonObject) {
                 SManga.create().apply {
-                    url = "/test1"
-                    title = "Test 1"
-                    thumbnail_url = "https://fakeimg.pl/300/?text=Test+1"
-                },
-                SManga.create().apply {
-                    url = "/test2"
-                    title = "Test 2"
-                    thumbnail_url = "https://fakeimg.pl/300/?text=Test+2"
+                    url = get("url")!!.jsonPrimitive.content
+                    title = get("name")!!.jsonPrimitive.content
+                    thumbnail_url = get("thumb")!!.jsonPrimitive.content
                 }
-            ),
+            }
+        }
+
+        return MangasPage(
+            manga,
             hasNextPage = false
         )
     }
 
     override suspend fun getLatestMangaList(page: Int): MangasPage {
-        return MangasPage(
-            mangas = listOf(
-                SManga.create().apply {
-                    url = "/test2"
-                    title = "Test 2"
-                    thumbnail_url = "https://fakeimg.pl/300/?text=Test+2"
-                },
-                SManga.create().apply {
-                    url = "/test1"
-                    title = "Test 1"
-                    thumbnail_url = "https://fakeimg.pl/300/?text=Test+1"
-                }
-            ),
-            hasNextPage = false
-        )
+        return getDefaultMangaList(page)
     }
 
     override suspend fun getMangaList(query: String, filters: FilterList, page: Int): MangasPage {
@@ -103,11 +94,12 @@ class Test : HttpSource(), ConfigurableSource {
         }
 
         val chapter = if (fetchChapters) {
-            listOf(SChapter.create().apply {
-                url = manga.url
-                name = "Chapter " + manga.title
-                date_upload = System.currentTimeMillis()
-            })
+            CHAPTERS.parseAsDocument(baseUrl).select("a.chap").map {
+                SChapter.create().apply {
+                    setUrlWithoutDomain(it.absUrl("href"))
+                    name = it.text()
+                }
+            }
         } else {
             emptyList()
         }

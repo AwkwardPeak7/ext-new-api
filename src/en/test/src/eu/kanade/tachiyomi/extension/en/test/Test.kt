@@ -1,6 +1,9 @@
 package eu.kanade.tachiyomi.extension.en.test
 
 import android.util.Log
+import androidx.preference.EditTextPreference
+import androidx.preference.PreferenceScreen
+import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
@@ -10,11 +13,12 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.delay
 import mihonx.source.model.UserAgentType
+import mihonx.source.utils.sourcePreferences
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.Response
 
-class Test : HttpSource() {
+class Test : HttpSource(), ConfigurableSource {
     override val name = "New Api Test"
     override val language = "en"
     override val baseUrl = "http://127.0.0.1"
@@ -22,6 +26,8 @@ class Test : HttpSource() {
     override val hasLatestListing = true
     override val hasSearchFilters = true
     override val supportedUserAgentType = UserAgentType.Mobile
+
+    private val preferences = sourcePreferences()
 
     init {
         headers["User-Agent"]?.also {
@@ -83,15 +89,18 @@ class Test : HttpSource() {
     }
 
     override suspend fun getMangaDetailsAndChapters(manga: SManga): Pair<SManga, List<SChapter>> {
-        val newmanag = SManga.create().apply {
-            description = "Brand new description " + manga.title
+        val newManga = SManga.create().apply {
+            description = buildString {
+                append("title: ", manga.title, "\n")
+                append("pref val: ", preferences.getString("key", "empty"))
+            }
         }
         val chapter = SChapter.create().apply {
             url = manga.url
             name = "Chapter " + manga.title
         }
 
-        return newmanag to listOf(chapter)
+        return newManga to listOf(chapter)
     }
 
     override suspend fun getPageList(chapter: SChapter): List<Page> {
@@ -103,6 +112,14 @@ class Test : HttpSource() {
         return listOf(
             Page(1, imageUrl = url)
         )
+    }
+
+    override fun setupPreferenceScreen(screen: PreferenceScreen) {
+        EditTextPreference(screen.context).apply {
+            key = "key"
+            title = "Test Preference"
+            summary = "%s"
+        }
     }
 
     override fun popularMangaRequest(page: Int): Request {

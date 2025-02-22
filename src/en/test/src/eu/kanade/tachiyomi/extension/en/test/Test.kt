@@ -15,16 +15,24 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import mihonx.network.rateLimit
 import mihonx.source.model.UserAgentType
 import mihonx.source.utils.sourcePreferences
 import mihonx.utils.parseAs
 import mihonx.utils.parseAsDocument
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import kotlin.time.Duration.Companion.seconds
 
 class Test : HttpSource(), ConfigurableSource {
     override val name = "New Api Test"
     override val language = "en"
     override val baseUrl = "http://127.0.0.1"
+
+    override val client: OkHttpClient = super.client
+        .newBuilder()
+        .rateLimit(5, 1.seconds)
+        .build()
 
     override val hasLatestListing = true
     override val hasSearchFilters = true
@@ -47,8 +55,7 @@ class Test : HttpSource(), ConfigurableSource {
     }
 
     override suspend fun getDefaultMangaList(page: Int): MangasPage {
-        val jo = MANGA_LIST.parseAs<JsonArray>()
-        val manga = jo.map {
+        val manga = MANGA_LIST.parseAs<JsonArray>().map {
             with(it.jsonObject) {
                 SManga.create().apply {
                     url = get("url")!!.jsonPrimitive.content

@@ -31,7 +31,7 @@ class Test : HttpSource(), ConfigurableSource {
 
     override val client: OkHttpClient = super.client
         .newBuilder()
-        .rateLimit(5, 1.seconds)
+        .rateLimit(5, 1.seconds) { true } // idk why inline variants not working with inspector
         .build()
 
     override val hasLatestListing = true
@@ -130,6 +130,6 @@ class Test : HttpSource(), ConfigurableSource {
             key = "key"
             title = "Test Preference"
             summary = "%s"
-        }
+        }.also(screen::addPreference)
     }
 }
